@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>An API key, or a browser tab — Delivered Size Notes</title>
+<meta name="description" content="An API key, or a browser tab">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://dafa6.github.io/delivered-size-notes/an-api-key-or-a-browser-tab/">
+<meta property="og:type" content="article">
+<meta property="og:title" content="An API key, or a browser tab — Delivered Size Notes">
+<meta property="og:description" content="An API key, or a browser tab">
+<meta property="og:url" content="https://dafa6.github.io/delivered-size-notes/an-api-key-or-a-browser-tab/">
+<style>*{box-sizing:border-box}body{margin:0;font:16px/1.68 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;color:#1c1f23;background:#fdfdfc}
+.wrap{max-width:44rem;margin:0 auto;padding:2.2rem 1.25rem 4rem}
+header{border-bottom:1px solid #e5e3de;margin-bottom:2rem;padding-bottom:1.1rem}
+header a.brand{font-weight:650;font-size:1.02rem;color:#1c1f23;text-decoration:none;letter-spacing:-.01em}
+header p{margin:.3rem 0 0;color:#6b6f76;font-size:.9rem}
+h1{font-size:1.72rem;line-height:1.26;letter-spacing:-.02em;margin:0 0 .9rem}
+h2{font-size:1.2rem;margin:2.1rem 0 .6rem;letter-spacing:-.01em}
+h3{font-size:1.03rem;margin:1.6rem 0 .5rem}
+p,li{color:#26292e}
+a{color:#1256a8}
+blockquote{margin:1.3rem 0;padding:.1rem 0 .1rem 1rem;border-left:3px solid #dcd9d2;color:#4d5158}
+pre{background:#f4f3f0;padding:.85rem 1rem;overflow-x:auto;border-radius:5px;font-size:.86rem;line-height:1.5}
+code{background:#f4f3f0;padding:.12em .34em;border-radius:3px;font-size:.88em}
+pre code{background:none;padding:0}
+hr{border:0;border-top:1px solid #e5e3de;margin:2.2rem 0}
+ul.toc{list-style:none;padding:0}
+ul.toc li{margin:0 0 1.15rem}
+ul.toc a{font-weight:600;text-decoration:none;font-size:1.04rem}
+ul.toc p{margin:.2rem 0 0;color:#6b6f76;font-size:.92rem}
+footer{margin-top:3rem;padding-top:1.1rem;border-top:1px solid #e5e3de;color:#767a81;font-size:.85rem}
+footer a{color:#5b6068}
+.more{margin-top:2.6rem;padding-top:1.2rem;border-top:1px solid #e5e3de}
+.more h2{font-size:.82rem;text-transform:uppercase;letter-spacing:.07em;color:#767a81;margin:0 0 .6rem}
+.more ul{padding-left:1.1rem;margin:0}.more li{margin:.3rem 0;font-size:.94rem}</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+<a class="brand" href="https://dafa6.github.io/delivered-size-notes/">Delivered Size Notes</a>
+<p>The gap between what you ask a hosted image model for and what it hands back.</p>
+</header>
+<article><h1>An API key, or a browser tab</h1>
+<p>Two ways to use a hosted image model: call the API yourself, or use an interface somebody else built on top of it. Most write-ups assume the first and most tools assume the second, and the choice is usually made by whichever page you happened to land on rather than by what you are doing.</p>
+<p>Here is the version I would give someone who asked, including the cases where the API is obviously right.</p>
+<h2>Use the API when any of these are true</h2>
+<p><strong>The output feeds a system, not a person.</strong> If images are generated on a schedule, in response to user actions, or as part of a pipeline, you need programmatic access. Nothing else is a real option.</p>
+<p><strong>You need the parameters an interface does not expose.</strong> Seeds where available, unusual sizes, response formats, streaming, moderation settings. Wrappers pick defaults, and a good wrapper picks good ones, but picked is picked.</p>
+<p><strong>Volume makes the margin matter.</strong> Any interface built on top of an API has to cover its own costs. At low volume the difference is noise. At high volume it is the whole conversation, and you should be running the arithmetic rather than reading a pricing page.</p>
+<p><strong>Data handling is a compliance question.</strong> Fewer parties is simpler to reason about. If you have to document where a file went, one hop beats two.</p>
+<h2>Use someone else&#x27;s interface when any of these are true</h2>
+<p><strong>You are evaluating, not shipping.</strong> The question &quot;is this model good enough for my job&quot; does not need a key, a billing account, or a client library. It needs ten minutes and a few real prompts. Standing up an integration to answer it is a large fixed cost against a question that might be answered &quot;no&quot;.</p>
+<p><strong>The gate in front of the API is nontrivial.</strong> Some model tiers sit behind organisation-level verification. If you cannot get through that this week, an interface that already has access is the difference between trying the model and not.</p>
+<p><strong>You want a comparison, not a generation.</strong> Running the same prompt through two model variants side by side is ordinary in an interface and a small scripting job through the API.</p>
+<p><strong>The interface does something the API does not.</strong> This is the only genuinely interesting case. An API returns an image. A well-built interface can enforce a discipline the API cannot: recomputing edits from your original rather than chaining them, printing which model actually answered, resolving aspect ratios against a published table instead of letting you guess. Those are product decisions, not model capabilities, and you do not get them by calling the endpoint yourself — you get them by building them, which is the thing you were trying to avoid.</p>
+<h2>The question that usually settles it</h2>
+<p><strong>Is this a one-off, or is it going to run again?</strong></p>
+<p>One-off, or fewer than a few dozen images, or you do not yet know whether the model is right: use an interface. The setup cost of the API is real and the marginal saving is not.</p>
+<p>Running repeatedly, or embedded in something: use the API. You will need the control eventually and migrating later is more work than starting there.</p>
+<h2>What to check before trusting either</h2>
+<p>The same three things, in both cases:</p>
+<ul>
+<li><strong>What does one image cost you</strong>, at your actual configuration, measured rather than estimated.</li>
+<li><strong>What happens to a failed or blocked request</strong> — billed or not.</li>
+<li><strong>What gets recorded</strong>, so that in three months you can answer why an image looks the way it does.</li>
+</ul>
+<p>An interface that cannot answer the first two is asking for more trust than it has earned. An API integration that does not record the third is going to produce an unanswerable question later.</p>
+<hr>
+<p>For the evaluation case specifically, <a href="https://gptimage25.top/free">a browser interface that runs the first image without an account</a> removes the setup cost entirely, and the measured per-image figures at each tier are at <a href="https://gptimage25.top/pricing">gptimage25.top/pricing</a> with the upstream cost next to the retail price — which is also the number you need to decide whether to go direct.</p>
+<p><em>Disclosure: that site is mine. Independent, not affiliated with OpenAI.</em></p></article><div class="more"><h2>Also here</h2><ul><li><a href="https://dafa6.github.io/delivered-size-notes/requested-size-is-not-delivered-size/">Requested size is not delivered size</a></li><li><a href="https://dafa6.github.io/delivered-size-notes/why-the-letters-come-out-wrong/">Why the letters come out wrong</a></li></ul></div><footer>Delivered Size Notes — by Andy Swift. Independent; not affiliated with OpenAI or any model vendor.</footer>
+</div>
+</body>
+</html>

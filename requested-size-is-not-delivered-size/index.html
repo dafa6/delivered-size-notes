@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Requested size is not delivered size — Delivered Size Notes</title>
+<meta name="description" content="Requested size is not delivered size">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://dafa6.github.io/delivered-size-notes/requested-size-is-not-delivered-size/">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Requested size is not delivered size — Delivered Size Notes">
+<meta property="og:description" content="Requested size is not delivered size">
+<meta property="og:url" content="https://dafa6.github.io/delivered-size-notes/requested-size-is-not-delivered-size/">
+<style>*{box-sizing:border-box}body{margin:0;font:16px/1.68 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;color:#1c1f23;background:#fdfdfc}
+.wrap{max-width:44rem;margin:0 auto;padding:2.2rem 1.25rem 4rem}
+header{border-bottom:1px solid #e5e3de;margin-bottom:2rem;padding-bottom:1.1rem}
+header a.brand{font-weight:650;font-size:1.02rem;color:#1c1f23;text-decoration:none;letter-spacing:-.01em}
+header p{margin:.3rem 0 0;color:#6b6f76;font-size:.9rem}
+h1{font-size:1.72rem;line-height:1.26;letter-spacing:-.02em;margin:0 0 .9rem}
+h2{font-size:1.2rem;margin:2.1rem 0 .6rem;letter-spacing:-.01em}
+h3{font-size:1.03rem;margin:1.6rem 0 .5rem}
+p,li{color:#26292e}
+a{color:#1256a8}
+blockquote{margin:1.3rem 0;padding:.1rem 0 .1rem 1rem;border-left:3px solid #dcd9d2;color:#4d5158}
+pre{background:#f4f3f0;padding:.85rem 1rem;overflow-x:auto;border-radius:5px;font-size:.86rem;line-height:1.5}
+code{background:#f4f3f0;padding:.12em .34em;border-radius:3px;font-size:.88em}
+pre code{background:none;padding:0}
+hr{border:0;border-top:1px solid #e5e3de;margin:2.2rem 0}
+ul.toc{list-style:none;padding:0}
+ul.toc li{margin:0 0 1.15rem}
+ul.toc a{font-weight:600;text-decoration:none;font-size:1.04rem}
+ul.toc p{margin:.2rem 0 0;color:#6b6f76;font-size:.92rem}
+footer{margin-top:3rem;padding-top:1.1rem;border-top:1px solid #e5e3de;color:#767a81;font-size:.85rem}
+footer a{color:#5b6068}
+.more{margin-top:2.6rem;padding-top:1.2rem;border-top:1px solid #e5e3de}
+.more h2{font-size:.82rem;text-transform:uppercase;letter-spacing:.07em;color:#767a81;margin:0 0 .6rem}
+.more ul{padding-left:1.1rem;margin:0}.more li{margin:.3rem 0;font-size:.94rem}</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+<a class="brand" href="https://dafa6.github.io/delivered-size-notes/">Delivered Size Notes</a>
+<p>The gap between what you ask a hosted image model for and what it hands back.</p>
+</header>
+<article><h1>Requested size is not delivered size</h1>
+<p>Ask a hosted image model for 1920×1080 and you will usually get something else. Not an error, not a warning — a different file, silently.</p>
+<p>This is not a bug, and it is not the provider being careless. It is a consequence of how these models are built, and once you know the shape of it you stop being surprised by the output and start designing around it.</p>
+<h2>Models generate into buckets</h2>
+<p>A diffusion or autoregressive image model is trained at a small set of resolutions. Inference runs at one of those, or at a close multiple. The API presents a size parameter because people expect one, but behind it is a lookup: your request is mapped onto the nearest supported bucket, generated there, and returned.</p>
+<p>So there are three numbers in play and most interfaces show you one:</p>
+<ol>
+<li><strong>What you asked for.</strong></li>
+<li><strong>What bucket it resolved to.</strong></li>
+<li><strong>What pixel dimensions the returned file actually has.</strong></li>
+</ol>
+<p>Two and three are usually the same. One is frequently different from both, and nothing in the response says so unless the interface goes looking.</p>
+<h2>Why this bites</h2>
+<p><strong>Layouts.</strong> If the image feeds a fixed slot — an ad unit, a card, a print bleed — a 16:9 request that comes back at a slightly different ratio means either a crop you did not choose or letterboxing. Discovered at the layout stage, which is after the money was spent.</p>
+<p><strong>Text.</strong> Lettering is rendered at the bucket resolution and then scaled. Small text that would have been legible at the requested size is not necessarily legible after the model rendered it smaller and something upstream scaled it back up.</p>
+<p><strong>Cost reconciliation.</strong> If you are computing a cost per image from your billing data and you assume you got what you asked for, your denominator is wrong. Cost tracks the size that actually ran.</p>
+<p><strong>Comparisons.</strong> Two models given &quot;1920×1080&quot; may deliver different actual sizes. Comparing sharpness between them is then partly a comparison of scaling, not of the models.</p>
+<h2>What to do about it</h2>
+<p><strong>Find the supported set once and write it down.</strong> Providers publish this, though usually not on the page you were reading. Ten minutes, and it stops being a recurring surprise.</p>
+<p><strong>Design at a supported size rather than a preferred one.</strong> Picking from the list costs nothing and removes an entire class of failure. If your layout needs a specific ratio, pick the nearest supported bucket and crop deliberately, on your side, where you control the framing.</p>
+<p><strong>Record what came back, not what you sent.</strong> This is the single highest-value line of instrumentation in an image pipeline. One field: actual delivered dimensions. Without it, every later question about quality, cost or reproducibility has a hole in it.</p>
+<p><strong>Check whether your interface is telling you.</strong> Most do not. Open the returned file and read its dimensions; if they differ from your request and nothing in the UI mentioned it, the UI is showing you your own intent reflected back, which is not information.</p>
+<h2>The aspect-ratio shorthand</h2>
+<p>Interfaces increasingly take an aspect ratio — &quot;16:9&quot;, &quot;square&quot;, &quot;portrait&quot; — rather than pixel dimensions. This is friendlier and it hides the same mechanism one layer deeper: the ratio is resolved against a table, that table picks a bucket, and the bucket determines both the file and the price.</p>
+<p>It is a good abstraction as long as the resolution is visible afterwards. It becomes a bad one the moment the tool shows you &quot;16:9&quot; and nothing else, because then two requests that cost different amounts look identical in your history.</p>
+<h2>The one-line version</h2>
+<p>The size field is a request, not a specification. Treat the returned file as the source of truth, record its actual dimensions, and choose from the supported set when the layout matters.</p>
+<hr>
+<p>An interface that resolves the ratio against a published table and <a href="https://gptimage25.top/text-to-image">prints the delivered pixel size under the result</a>, rather than echoing what you asked for, is at <a href="https://gptimage25.top/">gptimage25.top</a>.</p>
+<p><em>Disclosure: that site is mine. Independent, not affiliated with OpenAI.</em></p></article><div class="more"><h2>Also here</h2><ul><li><a href="https://dafa6.github.io/delivered-size-notes/why-the-letters-come-out-wrong/">Why the letters come out wrong</a></li><li><a href="https://dafa6.github.io/delivered-size-notes/an-api-key-or-a-browser-tab/">An API key, or a browser tab</a></li></ul></div><footer>Delivered Size Notes — by Andy Swift. Independent; not affiliated with OpenAI or any model vendor.</footer>
+</div>
+</body>
+</html>

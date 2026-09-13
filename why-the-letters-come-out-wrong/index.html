@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Why the letters come out wrong — Delivered Size Notes</title>
+<meta name="description" content="Why the letters come out wrong">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://dafa6.github.io/delivered-size-notes/why-the-letters-come-out-wrong/">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Why the letters come out wrong — Delivered Size Notes">
+<meta property="og:description" content="Why the letters come out wrong">
+<meta property="og:url" content="https://dafa6.github.io/delivered-size-notes/why-the-letters-come-out-wrong/">
+<style>*{box-sizing:border-box}body{margin:0;font:16px/1.68 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;color:#1c1f23;background:#fdfdfc}
+.wrap{max-width:44rem;margin:0 auto;padding:2.2rem 1.25rem 4rem}
+header{border-bottom:1px solid #e5e3de;margin-bottom:2rem;padding-bottom:1.1rem}
+header a.brand{font-weight:650;font-size:1.02rem;color:#1c1f23;text-decoration:none;letter-spacing:-.01em}
+header p{margin:.3rem 0 0;color:#6b6f76;font-size:.9rem}
+h1{font-size:1.72rem;line-height:1.26;letter-spacing:-.02em;margin:0 0 .9rem}
+h2{font-size:1.2rem;margin:2.1rem 0 .6rem;letter-spacing:-.01em}
+h3{font-size:1.03rem;margin:1.6rem 0 .5rem}
+p,li{color:#26292e}
+a{color:#1256a8}
+blockquote{margin:1.3rem 0;padding:.1rem 0 .1rem 1rem;border-left:3px solid #dcd9d2;color:#4d5158}
+pre{background:#f4f3f0;padding:.85rem 1rem;overflow-x:auto;border-radius:5px;font-size:.86rem;line-height:1.5}
+code{background:#f4f3f0;padding:.12em .34em;border-radius:3px;font-size:.88em}
+pre code{background:none;padding:0}
+hr{border:0;border-top:1px solid #e5e3de;margin:2.2rem 0}
+ul.toc{list-style:none;padding:0}
+ul.toc li{margin:0 0 1.15rem}
+ul.toc a{font-weight:600;text-decoration:none;font-size:1.04rem}
+ul.toc p{margin:.2rem 0 0;color:#6b6f76;font-size:.92rem}
+footer{margin-top:3rem;padding-top:1.1rem;border-top:1px solid #e5e3de;color:#767a81;font-size:.85rem}
+footer a{color:#5b6068}
+.more{margin-top:2.6rem;padding-top:1.2rem;border-top:1px solid #e5e3de}
+.more h2{font-size:.82rem;text-transform:uppercase;letter-spacing:.07em;color:#767a81;margin:0 0 .6rem}
+.more ul{padding-left:1.1rem;margin:0}.more li{margin:.3rem 0;font-size:.94rem}</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+<a class="brand" href="https://dafa6.github.io/delivered-size-notes/">Delivered Size Notes</a>
+<p>The gap between what you ask a hosted image model for and what it hands back.</p>
+</header>
+<article><h1>Why the letters come out wrong</h1>
+<p>A poster comes back looking right until you read it. The headline is nearly a word. The small print is a convincing texture of letters that spells nothing. Everyone has seen this; fewer people have a model of why it happens, and the model is worth having because it tells you which fixes will work.</p>
+<h2>The model is drawing letters, not setting type</h2>
+<p>A typesetting system has glyphs. It looks up a character, finds its outline in a font, and places it. The letter <em>a</em> is the same shape every time because it is the same object every time.</p>
+<p>An image model has no glyph table. It has learned what text <em>looks like</em> in photographs and designs — the statistics of strokes, spacing, contrast against a background, the way a sign is lit. When it renders a word it is producing something that has the visual properties of that word in that context. Sometimes those properties resolve into the correct characters. Sometimes they resolve into shapes that are locally letter-like and globally wrong.</p>
+<p>This is why the failure mode is so specific: text is almost always <em>typographically plausible</em> and <em>semantically broken</em>. It is not random noise. It is a very good drawing of the idea of a word.</p>
+<h2>Three consequences that follow directly</h2>
+<p><strong>Short text works far better than long text.</strong> Every additional character is another chance for the sequence to drift. A three-word headline is a different difficulty class from a paragraph, and no amount of prompt engineering moves a paragraph into the easy class.</p>
+<p><strong>Large text works far better than small text.</strong> Small lettering occupies fewer pixels, so there is less signal available to make the characters distinct. The illegible small print at the bottom of a generated poster is not the model being lazy; there was no room to be correct in.</p>
+<p><strong>Re-editing an image with text in it degrades the text.</strong> This is the one people trip over. If your tool applies edit two to the <em>output</em> of edit one, the model re-reads the rendered lettering as image content and re-renders it. It does not know those pixels were meant to be a specific string, so it reproduces something similar. Four edits later the headline has drifted into a different word, and each individual step looked fine.</p>
+<h2>What actually helps</h2>
+<p><strong>Ask for less text, larger.</strong> The single highest-leverage change. Move body copy out of the generation entirely.</p>
+<p><strong>Name the text as an invariant when editing.</strong> If you are changing something else, say explicitly that the lettering must not change. It does not guarantee preservation, but the alternative — saying nothing — guarantees the model treats it as fair game.</p>
+<p><strong>Prefer a tool that recomputes from your original.</strong> If each edit is derived from the source file plus the accumulated instruction list rather than from the previous render, the text is re-rendered from the same starting point every time instead of from a copy of a copy. Drift stops compounding. It does not stop drift, but it stops the multiplication.</p>
+<p><strong>Composite rather than generate.</strong> For anything that must be exactly right — a brand name, a price, a legal line — generate the image without it and lay the type on afterwards in whatever tool you already use. Five minutes, and the result is correct rather than probably correct.</p>
+<p><strong>Proof at 100%.</strong> Generated text often reads correctly in a thumbnail and falls apart at full size, because at thumbnail scale you are reading your own expectation.</p>
+<h2>The test that tells you which tool you have</h2>
+<p>Generate an image with a short headline. Make four unrelated edits in sequence — change a colour, move an object, adjust the light, alter the background. Then compare the headline in pass four against pass one.</p>
+<p>If it has drifted, your tool is chaining. That is worth knowing before you plan a revision-heavy job with text in frame, because no instruction you write on pass four can undo what happened on passes one through three.</p>
+<hr>
+<p>The chaining half of this is a property of the tool rather than the model, which is why it is worth checking: <a href="https://gptimage25.top/image-to-image">an editor that recomputes from the original instead of re-editing its own output</a> keeps the fourth pass derived from your upload. The rest of the reasoning behind that choice is in <a href="https://gptimage25.top/">GPT Image 2.5 Image Generator</a>.</p>
+<p><em>Disclosure: that site is mine. Independent, not affiliated with OpenAI.</em></p></article><div class="more"><h2>Also here</h2><ul><li><a href="https://dafa6.github.io/delivered-size-notes/an-api-key-or-a-browser-tab/">An API key, or a browser tab</a></li><li><a href="https://dafa6.github.io/delivered-size-notes/requested-size-is-not-delivered-size/">Requested size is not delivered size</a></li></ul></div><footer>Delivered Size Notes — by Andy Swift. Independent; not affiliated with OpenAI or any model vendor.</footer>
+</div>
+</body>
+</html>
